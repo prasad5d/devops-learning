@@ -1,0 +1,32 @@
+stages:
+  - test
+  - build
+  - deploy
+  - notify
+
+variables:
+  VERSION: "1.0.0"
+
+test:
+  stage: test
+  image: python:3.11
+  script:
+    - pip install -r requirements.txt
+    - pytest
+
+build:
+  stage: build
+  script:
+    - echo "Building application..."
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Deploying version $VERSION..."
+
+notify:
+  stage: notify
+  needs:
+    - deploy
+  script:
+    - echo "Deployment successful! Version: $VERSION"
