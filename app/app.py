@@ -6,16 +6,17 @@ from datetime import datetime
 app = Flask(__name__)
 
 def load_tasks():
-    data_file = os.getenv("DATA_FILE", "tasks.json")  # ✅ har baar fresh read
+    data_file = os.getenv("DATA_FILE", "tasks.json")  # ✅
     if not os.path.exists(data_file):
         return []
     with open(data_file, "r") as f:
         return json.load(f)
 
 def save_tasks(tasks):
-    data_file = os.getenv("DATA_FILE", "tasks.json")  # ✅ har baar fresh read
+    data_file = os.getenv("DATA_FILE", "tasks.json")  # ✅
     with open(data_file, "w") as f:
         json.dump(tasks, f, indent=2)
+        
 APP_VERSION = os.getenv("APP_VERSION", "1.0.0")
 ENVIRONMENT = os.getenv("ENVIRONMENT", "development")
 
