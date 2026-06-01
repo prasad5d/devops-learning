@@ -31,9 +31,10 @@ jobs:
           pip install pytest
 
       - name: Run tests
-        run: pytest app/tests/ -v          # tests live inside app/tests/
+        run: pytest app/tests/ -v
         env:
-          ENVIRONMENT: test
+          PYTHONPATH: ${{ github.workspace }}
+      
 
   # ── Job 2: Build Docker Image ───────────────────────────────────────────────
   build:
