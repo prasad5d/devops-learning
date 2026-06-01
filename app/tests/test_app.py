@@ -51,7 +51,7 @@ def test_update_task(client):
 
 def test_delete_task(client):
     res = client.post("/api/tasks", json={"title": "Learn Kubernetes"})
-    task_id = json.loads(res.data)["id"]  # ✅ dynamic id lo
+    task_id = json.loads(res.data)["id"]
     res = client.delete(f"/api/tasks/{task_id}")
     assert res.status_code == 200
     tasks = json.loads(client.get("/api/tasks").data)
