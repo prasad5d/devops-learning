@@ -7,7 +7,6 @@ from app.app import app
 
 @pytest.fixture
 def client():
-    # Use a temp file so tests don't touch real data
     tmp = tempfile.mktemp(suffix=".json")
     app.config["TESTING"] = True
     os.environ["DATA_FILE"] = tmp
