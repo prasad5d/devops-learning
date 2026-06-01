@@ -26,7 +26,13 @@ def index():
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "healthy", "version": APP_VERSION, "environment": ENVIRONMENT})
+    tasks = load_tasks()
+    return jsonify({
+        "status": "healthy",
+        "version": APP_VERSION,
+        "environment": ENVIRONMENT,
+        "task_count": len(tasks)  # ✅ tasks ki ginti
+        })
 
 @app.route("/api/tasks", methods=["GET"])
 def get_tasks():

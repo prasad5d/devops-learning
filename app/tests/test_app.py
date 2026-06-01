@@ -21,7 +21,7 @@ def test_health_check(client):
     assert res.status_code == 200
     data = json.loads(res.data)
     assert data["status"] == "healthy"
-
+    assert "task_count" in data  # ✅ nayi check
 
 def test_get_tasks_empty(client):
     res = client.get("/api/tasks")
