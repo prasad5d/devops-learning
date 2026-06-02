@@ -1,6 +1,5 @@
 name: CI/CD Pipeline
 
-# Triggers: runs on every push and pull request to main
 on:
   push:
     branches: [main]
@@ -15,7 +14,6 @@ jobs:
   test:
     name: Lint & Test
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -34,14 +32,12 @@ jobs:
         run: pytest app/tests/ -v
         env:
           PYTHONPATH: ${{ github.workspace }}
-      
 
   # ── Job 2: Build Docker Image ───────────────────────────────────────────────
   build:
     name: Build Docker Image
     runs-on: ubuntu-latest
-    needs: test          # only builds if tests pass
-
+    needs: test
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -59,13 +55,12 @@ jobs:
           curl --fail http://localhost:5000/health
           docker stop smoke-test
 
-  # ── Job 3: Deploy (only on push to main) ───────────────────────────────────
+  # ── Job 3: Deploy to EC2 ────────────────────────────────────────────────────
   deploy:
     name: Deploy to Production
     runs-on: ubuntu-latest
     needs: build
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -73,16 +68,30 @@ jobs:
       - name: Set version
         run: echo "VERSION=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
 
-      # In a real project, replace this step with:
-      # - Push image to Docker Hub / ECR / GCR
-      # - SSH into server and docker compose pull + up
-      # - Or deploy to Kubernetes with kubectl
-      - name: Simulate deployment
-        run: |
-          echo "Deploying image $IMAGE_NAME:$VERSION to production..."
-          echo "In a real pipeline you would:"
-          echo "  1. Push image: docker push registry/$IMAGE_NAME:$VERSION"
-          echo "  2. SSH to server and run: docker compose up -d"
-          echo "  3. Wait for health check to pass"
-          echo "  4. Send Slack/email notification"
-          echo "Deploy complete!"
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "docker-compose.yml"
+          target: "/home/ubuntu/app"
+
+      - name: Deploy on EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            cd /home/ubuntu/app
+
+            docker compose down
+            docker compose up -d --build
+
+            sleep 5
+            curl --fail http://localhost:5000/health
+
+            docker image prune -f
+
+            echo "✅ Deployed version ${{ env.VERSION }}"
