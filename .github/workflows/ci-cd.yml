@@ -67,14 +67,15 @@ jobs:
       - name: Set version
         run: echo "VERSION=$(echo $GITHUB_SHA | cut -c1-7)" >> $GITHUB_ENV
 
-      - name: Copy files to EC2
+      - name: Copy all files to EC2
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          source: "docker-compose.yml"
+          source: "."
           target: "/home/ec2-user/app"
+          exclude: ".git,node_modules,__pycache__,.github"
 
       - name: Deploy on EC2
         uses: appleboy/ssh-action@v1.0.0
