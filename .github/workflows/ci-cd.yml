@@ -85,21 +85,10 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           script: |
             cd /home/ec2-user/app
-
-            # Purane containers band karo
-            docker compose -f docker-compose.prod.yml down
-
-            # Naye build karo aur start karo
-            docker compose -f docker-compose.prod.yml up -d --build
-
-            # Container healthy hone ka wait karo
+            sudo docker compose down
+            sudo docker compose up -d --build
             echo "Waiting for containers to be healthy..."
             sleep 60
-
-            # Health check
             curl --fail http://localhost:5000/health
-
-            # Purani images clean karo
-            docker image prune -f
-
+            sudo docker image prune -f
             echo "✅ Deployed version ${{ env.VERSION }}"
